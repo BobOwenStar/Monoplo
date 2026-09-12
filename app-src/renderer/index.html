@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Custom Discord RPC</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <nav class="sidebar">
+      <div class="sidebar-header">My Rich Presence</div>
+      <button class="sleep-btn" id="sleepBtn" title="Hide the window and keep running in the background">
+        <span class="sleep-btn-icon">☾</span> Sleep mode
+      </button>
+      <div class="sidebar-section">App Settings</div>
+      <button class="nav-item active" data-panel="discord">Discord Connection</button>
+      <button class="nav-item" data-panel="music">Music</button>
+      <button class="nav-item" data-panel="game">Game</button>
+      <div class="sidebar-section">Presence</div>
+      <button class="nav-item" data-panel="custom">Custom Activity</button>
+      <div class="sidebar-section">Info</div>
+      <button class="nav-item" data-panel="status">Status</button>
+      <button class="nav-item" data-panel="legal">Legal &amp; Privacy</button>
+    </nav>
+
+    <main class="content">
+      <section class="panel active" data-panel="discord">
+        <h1>Discord Connection</h1>
+        <p class="panel-sub">Where this app gets permission to set your Rich Presence.</p>
+
+        <div class="field">
+          <label for="discordClientId">Application Client ID</label>
+          <input id="discordClientId" type="text" placeholder="e.g. 1234567890123456789" />
+          <div class="hint">
+            From the Discord Developer Portal → your application → General Information.
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="updateIntervalSeconds">Update interval (seconds)</label>
+          <input id="updateIntervalSeconds" type="number" min="5" step="1" />
+          <div class="hint">Discord recommends 15 seconds or more between updates.</div>
+        </div>
+
+        <div class="field">
+          <label>Presence mode</label>
+          <div class="mode-switch">
+            <button type="button" class="mode-btn" data-mode="auto">Auto-detect</button>
+            <button type="button" class="mode-btn" data-mode="custom">Custom Activity</button>
+          </div>
+          <div class="hint">
+            Auto-detect shows whatever's playing (Music panel) or Game panel when that process
+            is running. Custom Activity always shows exactly what you set up on that page instead.
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="music">
+        <h1>Music</h1>
+        <p class="panel-sub">
+          Reads what's playing straight from Windows — any app, no account and no third-party
+          API needed. Only used while Presence mode is set to Auto-detect.
+        </p>
+
+        <div class="now-playing" id="nowPlaying">
+          <div class="now-playing-art" id="npArt">♪</div>
+          <div class="now-playing-info">
+            <div class="now-playing-title" id="npTitle">Nothing playing right now</div>
+            <div class="now-playing-artist" id="npArtist">Play something to see it here</div>
+            <div class="now-playing-bar-track">
+              <div class="now-playing-bar-fill" id="npBarFill"></div>
+            </div>
+            <div class="now-playing-time" id="npTime"></div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="musicLargeImage">Large image asset key</label>
+          <input id="musicLargeImage" type="text" placeholder="music_logo" />
+          <div class="hint">
+            Shown for whichever app is currently playing, when no cover art is found. Must
+            match an Art Asset key uploaded to your Discord application (Rich Presence →
+            Art Assets).
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="game">
+        <h1>Game</h1>
+        <p class="panel-sub">
+          Shows a custom status while this process is running. Only used while Presence mode is
+          set to Auto-detect.
+        </p>
+
+        <div class="field">
+          <label for="gameProcessName">Process name</label>
+          <input id="gameProcessName" type="text" placeholder="HITMAN3.exe" />
+          <div class="hint">Check Task Manager's Details tab for the exact name.</div>
+        </div>
+
+        <div class="field">
+          <label for="gameDetails">Details line</label>
+          <input id="gameDetails" type="text" placeholder="Contract in progress" />
+        </div>
+
+        <div class="field">
+          <label for="gameState">State line</label>
+          <input id="gameState" type="text" placeholder="Playing HITMAN 3" />
+        </div>
+
+        <div class="field">
+          <label for="gameLargeImage">Large image asset key</label>
+          <input id="gameLargeImage" type="text" placeholder="hitman3_logo" />
+          <div class="hint">Must match an Art Asset key uploaded to your Discord application.</div>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="custom">
+        <h1>Custom Activity</h1>
+        <p class="panel-sub">
+          Build your own activity by hand. This is what shows up on your profile when Presence
+          mode (Discord Connection page) is set to Custom Activity.
+        </p>
+
+        <div class="preview-label">Preview</div>
+        <div class="activity-preview" id="activityPreview">
+          <div class="art">
+            <div class="art-large" id="previewLargeImg"></div>
+            <div class="art-small" id="previewSmallImg"></div>
+          </div>
+          <div class="info">
+            <div class="app-name" id="previewAppName">Your App Name</div>
+            <div class="details" id="previewDetails">Details line goes here</div>
+            <div class="state" id="previewState">State line goes here</div>
+            <div class="elapsed" id="previewElapsed"></div>
+          </div>
+        </div>
+        <div class="hint preview-hint">
+          The app name shown above comes from your application's name in the Discord Developer
+          Portal — it isn't set here.
+        </div>
+
+        <div class="token-row">
+          <span class="token-label">Insert into last-clicked field:</span>
+          <button type="button" class="token-btn" data-token="{song}">Song Title</button>
+          <button type="button" class="token-btn" data-token="{artist}">Artist</button>
+          <button type="button" class="token-btn" data-token="{album}">Album</button>
+          <button type="button" class="token-btn" data-token="{app}">App Name</button>
+        </div>
+
+        <div class="field">
+          <label for="customDetails">Details line</label>
+          <input id="customDetails" type="text" placeholder="e.g. Listening to {song}" />
+        </div>
+
+        <div class="field">
+          <label for="customState">State line</label>
+          <input id="customState" type="text" placeholder="e.g. by {artist}" />
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="customLargeImageKey">Large image (asset key or https URL)</label>
+            <div class="input-with-btn">
+              <input id="customLargeImageKey" type="text" placeholder="e.g. my_logo or https://…" />
+              <button type="button" class="token-btn" id="useAlbumArtBtn" data-token="{albumArt}">
+                Use live art
+              </button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="customLargeImageText">Large image tooltip text</label>
+            <input id="customLargeImageText" type="text" placeholder="Shown on hover" />
+          </div>
+        </div>
+
+        <div class="hint token-hint">
+          The tokens above pull from whatever's currently playing when the activity updates —
+          leave them out and just type your own text if you'd rather it stay fully static.
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="customSmallImageKey">Small image (asset key or https URL, optional)</label>
+            <input id="customSmallImageKey" type="text" placeholder="e.g. status_icon" />
+          </div>
+          <div class="field">
+            <label for="customSmallImageText">Small image tooltip text</label>
+            <input id="customSmallImageText" type="text" placeholder="Shown on hover" />
+          </div>
+        </div>
+
+        <div class="field checkbox-field">
+          <label class="checkbox-label">
+            <input id="customShowTimestamp" type="checkbox" />
+            <span>Show elapsed time</span>
+          </label>
+          <div class="hint">Resets to 0:00 whenever you change and save the activity above.</div>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="status">
+        <h1>Status</h1>
+        <p class="panel-sub">What the app is currently detecting. Updates in place — no scrolling spam.</p>
+        <div class="status-box" id="statusBox">
+          <div class="status-box-rule">=====================================</div>
+          <div class="status-box-row"><span class="status-box-label">Song:</span><span id="statSong">—</span></div>
+          <div class="status-box-row"><span class="status-box-label">Author:</span><span id="statAuthor">—</span></div>
+          <div class="status-box-row"><span class="status-box-label">Album:</span><span id="statAlbum">—</span></div>
+          <div class="status-box-row"><span class="status-box-label">Music Source:</span><span id="statSource">—</span></div>
+          <div class="status-box-rule">=====================================</div>
+          <div class="status-box-row status-box-error" id="statErrorRow">
+            <span class="status-box-label">Latest error:</span><span id="statError">None</span>
+          </div>
+          <div class="status-box-updated">Last updated: <span id="statUpdated">—</span></div>
+        </div>
+      </section>
+
+      <section class="panel legal-panel" data-panel="legal">
+        <h1>Legal &amp; Privacy</h1>
+        <p class="panel-sub">What this app does with your data, in plain terms.</p>
+
+        <div class="legal-block">
+          <h2>Privacy policy</h2>
+          <p>
+            This app runs entirely on your computer. Your settings — the Discord Application
+            ID, your Custom Activity text, and the rest of this configuration — are saved to a
+            local file in your user data folder and are never uploaded anywhere.
+          </p>
+          <p>This app makes exactly two kinds of outbound connections:</p>
+          <ul>
+            <li>
+              To your own Discord desktop client, over your computer's local IPC connection, to
+              set your Rich Presence. This never leaves your machine.
+            </li>
+            <li>
+              To Deezer's public search API, to look up cover art for whatever's currently
+              playing. Only the song title and artist name are sent — as plain search text, with
+              no account, login, or device identifier attached. No response is stored beyond a
+              short in-memory cache used to avoid repeat lookups.
+            </li>
+          </ul>
+          <p>
+            This app does not run in a browser, so it does not set or read cookies, and it does
+            not use any analytics, tracking, or advertising services of any kind.
+          </p>
+        </div>
+
+        <div class="legal-block">
+          <h2>Terms of use</h2>
+          <p>
+            This app is provided as-is, for personal use, with no warranty of any kind. You're
+            responsible for the Discord Application ID you connect and for anything your Custom
+            Activity is set up to display — this app only sends what you've configured it to
+            send.
+          </p>
+          <p>
+            Cover art is served by Deezer and remains the property of its respective rights
+            holders; this app only links to it, it doesn't host or redistribute any of it.
+          </p>
+          <p>
+            Using a game or app's assets in your presence images requires the appropriate
+            rights or permissions from that game or app; this app doesn't grant any.
+          </p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="save-bar" id="saveBar">
+    <span>You have unsaved changes.</span>
+    <div class="save-bar-actions">
+      <button class="btn-text" id="resetBtn">Reset</button>
+      <button class="btn-primary" id="saveBtn">Save changes</button>
+    </div>
+  </div>
+
+  <!--
+    Shown instead of the whole app when this HTML is opened outside the
+    real desktop app (e.g. someone hosted a copy of these files on a
+    website, or double-clicked index.html in a normal browser). Discord
+    Rich Presence only works over a local IPC connection to the Discord
+    desktop client, which a browser tab has no way to reach — so rather
+    than silently doing nothing, this blocks the page and points back to
+    the real app.
+  -->
+  <div class="blocked-overlay" id="blockedOverlay" hidden>
+    <div class="blocked-box">
+      <div class="blocked-title">APP BLOCKED — RUNNING ON WEBSITE</div>
+      <p class="blocked-text">
+        This is a desktop app. It sets your Discord status over a local
+        connection to the Discord client, which only works from the
+        installed app — not from a browser tab. Nothing here can update
+        your Rich Presence right now.
+      </p>
+      <button class="btn-primary blocked-btn" id="runOnAppBtn">Run back on app</button>
+      <p class="blocked-hint">
+        If the app is installed, this hands off to it directly. Otherwise,
+        close this tab and launch the installed app instead.
+      </p>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

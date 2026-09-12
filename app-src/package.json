@@ -1,0 +1,30 @@
+{
+  "name": "custom-discord-rpc-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Custom Discord Rich Presence app with a settings UI, for Spotify/Apple Music + Hitman 3",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "dependencies": {
+    "discord-rpc": "^4.0.1",
+    "windows-media-sessions": "^1.0.0"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.example.customdiscordrpc",
+    "productName": "Custom Discord RPC",
+    "win": {
+      "target": "portable"
+    },
+    "files": [
+      "**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,readme.md,changelog.md}"
+    ]
+  }
+}
