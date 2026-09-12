@@ -1,0 +1,41 @@
+# Builds the Windows installer (.exe) and publishes it to this repo's
+# GitHub Releases whenever a version tag is pushed (e.g. v1.0.1).
+#
+# That release is exactly what:
+#   1) gives you a real, downloadable .exe (Assets on the Release page), and
+#   2) is what every already-installed copy of the app checks against to
+#      auto-update itself (electron-updater reads this repo's Releases).
+#
+# You never need a Windows machine yourself to produce a build — this runs
+# on GitHub's own Windows runner.
+
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write # required so this workflow can create/publish a Release
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: app-src
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build and publish Windows installer
+        run: npx electron-builder --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
